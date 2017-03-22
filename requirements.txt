@@ -1,0 +1,4 @@
+scikit-learn
+numpy
+gpxpy >= 0.8.8
+matplotlib >= 2.0.0
