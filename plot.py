@@ -21,22 +21,22 @@ print("Tracks: {}, Waypoints: {}, Routes: {}".format(len(gpx.tracks), len(gpx.wa
 
 #points = [p for p in s for s in t.segments for t in gpx.tracks]
 points = [[seg.points for seg in t.segments] for t in gpx.tracks]
-print(len(gpx.tracks[0].segments[0].points))
+
 points = []
+plt.scatter(-1, -1, c="r")
+plt.scatter(-1, -1, c="b")
+plt.scatter(-1, -1, c="y")
 for track in gpx.tracks:
     for segment in track.segments:
         for point in segment.points:
             points.append(point)
-print(len(points))
+
 times = [p.time for p in points]
 t_min = min(times)
 durations = [(t - t_min).total_seconds() for t in times]
 heights = [p.elevation for p in points]
 delta_h = smooth(np.append(0, np.diff(heights)), 7)
 
-print(len(delta_h), len(durations))
-#plt.plot(durations, heights, c='b')
-#plt.plot(durations, delta_h*100, c='r')
 for ix in range(len(durations)):
     if delta_h[ix] > 0:
         c = 'r'
@@ -45,5 +45,9 @@ for ix in range(len(durations)):
     else:
         c = 'b'
     plt.scatter(durations[ix], heights[ix], c=c)
-
-plt.savefig('plot.png')
+plt.xlim([0, max(durations)])
+plt.ylim([min(heights), max(heights)])
+plt.xlabel('time [s]')
+plt.ylabel('elevation [m]')
+plt.legend(['going up', 'going down', 'not moving'])
+plt.savefig('plot.png', dpi=600)
