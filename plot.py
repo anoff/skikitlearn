@@ -35,12 +35,17 @@ times = [p.time for p in points]
 t_min = min(times)
 durations = [(t - t_min).total_seconds() for t in times]
 heights = [p.elevation for p in points]
-delta_h = smooth(np.append(0, np.diff(heights)), 7)
+delta_h = np.diff(heights)
+delta_h_filt = smooth(np.append(0, delta_h), 7)
 
+delta_t = np.diff(durations)
+v_z = delta_h_filt/np.append(0, delta_t)
+print(v_z)
+plt.plot(durations, v_z*36+2000, '--m')
 for ix in range(len(durations)):
-    if delta_h[ix] > 0:
+    if delta_h_filt[ix] > 0:
         c = 'r'
-    elif delta_h[ix] == 0:
+    elif delta_h_filt[ix] == 0:
         c = 'y'
     else:
         c = 'b'
