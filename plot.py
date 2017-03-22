@@ -26,6 +26,7 @@ points = []
 plt.scatter(-1, -1, c="r")
 plt.scatter(-1, -1, c="b")
 plt.scatter(-1, -1, c="y")
+plt.legend(['going up', 'going down', 'not moving'])
 for track in gpx.tracks:
     for segment in track.segments:
         for point in segment.points:
@@ -54,5 +55,4 @@ plt.xlim([0, max(durations)])
 plt.ylim([min(heights), max(heights)])
 plt.xlabel('time [s]')
 plt.ylabel('elevation [m]')
-plt.legend(['going up', 'going down', 'not moving'])
 plt.savefig('plot.png', dpi=600)
