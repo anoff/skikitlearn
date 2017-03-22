@@ -3,6 +3,12 @@ import gpxpy.parser as parser
 import datetime
 import numpy as np
 
+
+def smooth(y, box_pts=11):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
 gpx_file = open( 'data/runtastic_20170322_1146_Skiing.gpx', 'r' )
 
 gpx_parser = parser.GPXParser( gpx_file )
@@ -26,7 +32,7 @@ times = [p.time for p in points]
 t_min = min(times)
 durations = [(t - t_min).total_seconds() for t in times]
 heights = [p.elevation for p in points]
-delta_h = np.append(0, np.diff(heights))
+delta_h = smooth(np.append(0, np.diff(heights)), 7)
 
 print(len(delta_h), len(durations))
 #plt.plot(durations, heights, c='b')
@@ -40,4 +46,4 @@ for ix in range(len(durations)):
         c = 'b'
     plt.scatter(durations[ix], heights[ix], c=c)
 
-plt.show()
+plt.savefig('plot.png')
