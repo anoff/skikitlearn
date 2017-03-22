@@ -40,8 +40,7 @@ delta_h_filt = smooth(np.append(0, delta_h), 7)
 
 delta_t = np.diff(durations)
 v_z = delta_h_filt/np.append(0, delta_t)
-print(v_z)
-plt.plot(durations, v_z*36+2000, '--m')
+
 for ix in range(len(durations)):
     if delta_h_filt[ix] > 0:
         c = 'r'
@@ -50,6 +49,7 @@ for ix in range(len(durations)):
     else:
         c = 'b'
     plt.scatter(durations[ix], heights[ix], c=c)
+plt.plot(durations, v_z*36+2000, '--m')
 plt.xlim([0, max(durations)])
 plt.ylim([min(heights), max(heights)])
 plt.xlabel('time [s]')
