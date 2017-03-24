@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from scipy.signal import savgol_filter
 from lib.process import load_points, calc_additional
 
 points = load_points('data/runtastic_20170322_1454_Skiing.gpx')
