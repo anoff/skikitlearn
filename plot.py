@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-import gpxpy.parser as parser
+import gpxpy
 import datetime
 import numpy as np
+from collections import namedtuple
 
 
 def smooth(y, box_pts=11):
@@ -10,21 +11,29 @@ def smooth(y, box_pts=11):
     return y_smooth
 
 def load_points(filename):
+    Point = namedtuple("Point", ["lon", "lat", "elevation", "distance", "time"])
     gpx_file = open(filename, 'r')
-    gpx_parser = parser.GPXParser(gpx_file)
+    gpx = gpxpy.parse(gpx_file)
     gpx_file.close()
-    gpx = gpx_parser.parse()
     # aggregate all points into one array
     points = []
+    # print(dir(gpx.tracks[0].segments[0].points[0]))
     for track in gpx.tracks:
         for segment in track.segments:
-            for point in segment.points:
-                points.append(point)
+            for index, point in enumerate(segment.points, start=0):
+                new_point = Point(
+                    lon=point.longitude,
+                    lat=point.latitude,
+                    elevation=point.elevation,
+                    distance=point.distance_2d(segment.points[index-1]) if index > 0 else 0,
+                    time=point.time
+                )
+                points.append(new_point)
     return points
 
 points = load_points('data/runtastic_20170322_1454_Skiing.gpx')
 print("Points: {}".format(len(points)))
-print(points[0])
+#print(points)
 
 times = [p.time for p in points]
 t_min = min(times)
@@ -35,7 +44,7 @@ delta_h_filt = np.append(0, smooth(delta_h, 5))
 
 delta_t = np.diff(durations)
 
-v_z = delta_h_filt/np.append(0, delta_t)
+v_z = delta_h_filt[1:]/delta_t # HACK remove one point to achieve same length
 plt.figure(1)
 plt.subplot(311)
 plt.hist(delta_t)
@@ -44,7 +53,7 @@ plt.subplot(312)
 plt.plot(durations, heights, durations, smooth(heights, 3),  durations, smooth(heights, 5),  durations, smooth(heights, 10))
 plt.legend(["height", "s3", "s5", "s10"])
 #plt.savefig('analysis.png', dpi=600)
-#plt.show()
+plt.show()
 
 
 '''
