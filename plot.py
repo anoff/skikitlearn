@@ -3,7 +3,7 @@ import gpxpy
 import datetime
 import numpy as np
 from collections import namedtuple
-
+from scipy.signal import savgol_filter
 
 def smooth(y, box_pts=11):
     box = np.ones(box_pts)/box_pts
@@ -25,7 +25,7 @@ def load_points(filename):
                     lon=point.longitude,
                     lat=point.latitude,
                     elevation=point.elevation,
-                    distance=point.distance_2d(segment.points[index-1]) if index > 0 else 0,
+                    distance=point.distance_3d(segment.points[index-1]) if index > 0 else 0,
                     time=point.time
                 )
                 points.append(new_point)
@@ -41,18 +41,24 @@ durations = [(t - t_min).total_seconds() for t in times]
 heights = [p.elevation for p in points]
 delta_h = np.diff(heights)
 delta_h_filt = np.append(0, smooth(delta_h, 5))
-
+distance = [p.distance for p in points]
 delta_t = np.diff(durations)
 
 v_z = delta_h_filt[1:]/delta_t # HACK remove one point to achieve same length
+x = durations
 plt.figure(1)
 plt.subplot(311)
-plt.hist(delta_t)
-plt.ylabel("# deltaT")
+plt.plot(x, distance, x, smooth(distance, 3),  x, smooth(distance, 5),  x, smooth(distance, 11), x, savgol_filter(distance, 5, 2), x, savgol_filter(distance, 11, 2))
+plt.legend(["distance", "s3", "s5", "s10", "sg5", "sg10"])
+
+print("distance: {}, s3: {}, s5: {}, s10: {}, sg5: {}, sg10: {}".format(sum(distance), sum(smooth(distance, 3)), sum(smooth(distance, 5)), sum(smooth(distance, 11)), sum(savgol_filter(distance, 5, 2)), sum(savgol_filter(distance, 11, 2))))
 plt.subplot(312)
-plt.plot(durations, heights, durations, smooth(heights, 3),  durations, smooth(heights, 5),  durations, smooth(heights, 10))
+plt.plot(x, heights, x, smooth(heights, 3),  x, smooth(heights, 5),  x, smooth(heights, 10))
 plt.legend(["height", "s3", "s5", "s10"])
 #plt.savefig('analysis.png', dpi=600)
+plt.subplot(313)
+plt.plot(x, distance)
+plt.ylabel("distance")
 plt.show()
 
 
