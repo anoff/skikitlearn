@@ -53,7 +53,6 @@ def extract_rides(points):
             index["start"] = ix
         elif index["start"] > 0 and smooth_d_height[ix] > 0:
             index["end"] = ix
-            print(index)
             indices.append(index)
             index = {"start": 0, "end": 0}
     rides = []
