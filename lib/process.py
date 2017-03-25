@@ -7,6 +7,7 @@ def smooth(y, box_pts=11):
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
+# load file and concat all tracks/segments
 def load_points(filename):
     Point = namedtuple("Point", ["lon", "lat", "elevation", "distance", "time"])
     gpx_file = open(filename, 'r')
@@ -28,13 +29,34 @@ def load_points(filename):
                 points.append(new_point)
     return points
 
+# generate additional values
 def calc_additional(points):
-    times = [p.time for p in points]
-    t_min = min(times)
-    duration = [(t - t_min).total_seconds() for t in times]
-    height = smooth([p.elevation for p in points], 5)
-    d_height = np.append(0, np.diff(height))
-    distance = smooth([p.distance for p in points], 5)
-    d_distance = np.append(0, np.diff(distance))
+  times = [p.time for p in points]
+  t_min = min(times)
+  duration = [(t - t_min).total_seconds() for t in times]
+  height = smooth([p.elevation for p in points], 5)
+  d_height = np.append(0, np.diff(height))
+  distance = smooth([p.distance for p in points], 5)
+  d_distance = np.append(0, np.diff(distance))
 
-    return duration, height, d_height, distance, d_distance
+  return duration, height, d_height, distance, d_distance
+
+# extract rides
+# consecutive points with decreasing elevation & no stops (change in elevation) > 60s
+def extract_rides(points):
+    duration, height, d_height, distance, d_distance = calc_additional(points)
+    smooth_d_height = smooth(d_height, 20)
+    indices = []
+    index = {"start": 0, "end": 0}
+    for ix in range(len(points)):
+        if smooth_d_height[ix] < 0 and (ix == 0 or smooth_d_height[ix-1] > 0):
+            index["start"] = ix
+        elif index["start"] > 0 and smooth_d_height[ix] > 0:
+            index["end"] = ix
+            print(index)
+            indices.append(index)
+            index = {"start": 0, "end": 0}
+    rides = []
+    for trk in indices:
+      rides.append(points[trk["start"]:trk["end"]])
+    return rides
